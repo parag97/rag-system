@@ -1,0 +1,7 @@
+embedding:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+
+qdrant:
+  host: localhost
+  port: 6333
+  collection_name: documents
