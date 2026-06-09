@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+
+.env
+
+qdrant_storage/
+
+.vscode/
+.idea/
+
+.ipynb_checkpoints/
+
+logs/
+*.log
