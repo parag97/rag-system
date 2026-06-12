@@ -1,43 +1,15 @@
-from pydantic import BaseModel
+"""Data models for vector store points."""
+
+from pydantic import BaseModel, Field
 
 from src.core.chunk import Chunk
-
+from src.embeddings.model import SparseEmbedding
 
 
 class VectorPoint(BaseModel):
+    """A vector and validated chunk payload to persist."""
 
-    id: str
-
-    collection_name: str
-
-    vector: list[float]
-
+    id: str = Field(min_length=1)
+    vectorEmbedding: list[float] = Field(min_length=1)
+    SparseEmbedding: SparseEmbedding 
     payload: Chunk
-
-
-
-class ChunkPayload(BaseModel):
-    id: str
-
-    text: str
-
-    source_file: str
-    start_page: int | None = None
-
-    end_page: int | None = None
-
-    section_title: str | None = None
-
-
-class QdrantConfig(BaseModel):
-    host: str
-    port: int
-    collection_name: str
-
-
-
-
-
-
-
-

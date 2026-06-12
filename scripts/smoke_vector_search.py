@@ -1,7 +1,4 @@
-# test_search.py
-
-from gc import collect
-from uuid import uuid4
+"""Manual smoke script: seed sample chunks and run a vector search."""
 
 from src.core.chunk import Chunk
 from src.core.config import load_config
@@ -10,7 +7,6 @@ from src.embeddings.sentence_transformer_service import (
 )
 from src.vectordb.models import VectorPoint
 from src.vectordb.qdrant_store import QdrantVectorStore
-
 
 config = load_config()
 
@@ -51,7 +47,7 @@ chunks = [
     chunk_3,
 ]
 
-vectors = embedder.embed([chunk.text for chunk in chunks])
+vectors = embedder.embed_documents([chunk.text for chunk in chunks])
 
 points = []
 
@@ -62,15 +58,12 @@ for chunk, vector in zip(chunks, vectors):
             id = chunk.vector_id,
             vector = vector,
             payload = chunk,
-            collection_name=config.qdrant.collection_name
         )
     )
 
 store.upsert(points)
 
-query_vector = embedder.embed(
-    ["What is the maternity leave policy?"]
-)[0]
+query_vector = embedder.embed_query("What is the maternity leave policy?")
 
 results = store.search(
     query_vector=query_vector,
