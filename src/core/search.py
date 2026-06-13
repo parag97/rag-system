@@ -8,6 +8,10 @@ from src.core.chunk import Chunk
 class SearchResult(BaseModel):
     """A single chunk matched by a similarity search.
 
+    This model represents the user-facing result returned by the retrieval
+    pipeline after query embedding and vector store lookup. It flattens the
+    `Chunk` metadata for convenient access by callers.
+
     Attributes:
         chunk_id: Identifier in ``{document_id}:{chunk_index}`` form.
         score: Similarity score from the vector store (higher is more similar
@@ -29,7 +33,11 @@ class SearchResult(BaseModel):
 
     @classmethod
     def from_chunk_match(cls, chunk: Chunk, score: float) -> "SearchResult":
-        """Create a result for a chunk matched by the vector store."""
+        """Create a result for a chunk matched by the vector store.
+
+        This factory method ensures consistent mapping from internal
+        `Chunk` objects into the user-facing `SearchResult`.
+        """
         return cls(
             chunk_id=chunk.chunk_id,
             score=score,

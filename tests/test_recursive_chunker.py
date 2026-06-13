@@ -1,4 +1,8 @@
-"""Tests for RecursiveChunker."""
+"""Tests for RecursiveChunker.
+
+Validates that the chunker correctly splits documents into appropriately
+sized chunks with proper page tracking and deterministic chunking.
+"""
 
 import unittest
 
@@ -12,6 +16,7 @@ def _make_document(
     document_id: str = "doc-1",
     source_file: str = "sample.txt",
 ) -> Document:
+    """Create a test document from a list of (page_number, text) tuples."""
     return Document(
         document_id=document_id,
         source_file=source_file,
