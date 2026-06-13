@@ -2,6 +2,7 @@
 
 from hashlib import sha256
 from pathlib import Path
+from typing import cast, Iterable
 
 import fitz  # PyMuPDF
 
@@ -17,7 +18,7 @@ class PDFLoader(DocumentLoader):
     contents to allow idempotent ingestion runs.
     """
 
-    def load(self, pdf_path: str | Path) -> Document:
+    def load(self, source_path: str | Path) -> Document:
         """Load a PDF file and convert it into a Document.
 
         The method reads the PDF with PyMuPDF, extracts text from each
@@ -25,12 +26,12 @@ class PDFLoader(DocumentLoader):
         objects in reading order.
 
         Args:
-            pdf_path: Path to the PDF file.
+            source_path: Path to the PDF file.
 
         Returns:
             A Document containing all extracted pages.
         """
-        pdf_path = Path(pdf_path)
+        pdf_path = Path(source_path)
         document_id = self._document_id(pdf_path)
 
         # Open the PDF and extract page text deterministically.
@@ -40,7 +41,8 @@ class PDFLoader(DocumentLoader):
                     page_number=page_number,
                     text=page.get_text().strip(),
                 )
-                for page_number, page in enumerate(pdf, start=1)
+                for page_number, page in enumerate(
+                    pdf, start=1,) # type: ignore
             ]
 
         return Document(

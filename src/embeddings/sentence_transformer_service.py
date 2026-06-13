@@ -30,7 +30,7 @@ class SentenceTransformerEmbeddingService(DenseEmbeddingService):
     def dimension(self) -> int:
         """Embedding size for vectors returned by this service."""
         dimensions = self.model.get_embedding_dimension()
-        return dimensions
+        return dimensions # type: ignore
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """Encode document texts into dense vectors.
