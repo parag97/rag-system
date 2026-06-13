@@ -1,3 +1,9 @@
+"""Integration tests for the document ingestion service.
+
+Tests the full pipeline: loading a PDF, chunking it, embedding chunks,
+and upserting to a real Qdrant instance (when available).
+"""
+
 from pathlib import Path
 
 from fastembed.sparse import sparse_embedding_base
@@ -22,19 +28,19 @@ pytestmark = pytest.mark.integration
 
 
 def create_service() -> DocumentIngestionService:
+    """Wire up a fully-configured ingestion service for integration tests."""
     config = load_config()
 
     vector_store = QdrantVectorStore(config.qdrant.host, config.qdrant.port, config.qdrant.collection_name)
     VectorEmbedder = SentenceTransformerEmbeddingService(config.embedding.vector_model_name)
-    SparceEmbedder = BM25EmbeddingService(config.embedding.sparce_model_name)
-    chunker=RecursiveChunker(
-            chunk_size=config.chunking.chunk_size,
-            chunk_overlap=config.chunking.chunk_overlap,
-        )
-    document_loader=PDFLoader()
+    SparseEmbedder = BM25EmbeddingService(config.embedding.sparse_model_name)
+    chunker = RecursiveChunker(
+        chunk_size=config.chunking.chunk_size,
+        chunk_overlap=config.chunking.chunk_overlap,
+    )
+    document_loader = PDFLoader()
 
-
-    # Ensure the collection exists
+    # Ensure the collection exists before running tests.
     vector_store.create_collection(
         dimension=VectorEmbedder.dimension
     )
@@ -43,7 +49,7 @@ def create_service() -> DocumentIngestionService:
         document_loader,
         chunker,
         VectorEmbedder,
-        SparceEmbedder,
+        SparseEmbedder,
         vector_store=vector_store,
     )
 

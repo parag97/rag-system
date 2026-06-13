@@ -1,3 +1,9 @@
+"""Tests for document chunking with the recursive chunker.
+
+Validates that a PDF document is correctly loaded, chunked, and produces
+chunks with correct metadata, page tracking, and size constraints.
+"""
+
 # tests/chunking/test_recursive_chunker.py
 
 from pathlib import Path

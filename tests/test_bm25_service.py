@@ -1,15 +1,22 @@
-"""Tests for the FastEmbed-backed BM25 sparse encoder."""
+"""Tests for the FastEmbed-backed BM25 sparse encoder.
+
+Validates that the `BM25EmbeddingService` correctly converts FastEmbed
+sparse embeddings into our internal `SparseEmbedding` model.
+"""
 
 import numpy as np
 import pytest
 from fastembed import SparseEmbedding as FastEmbedSparseEmbedding
 
-from src.embeddings.bm25_service import SparseEmbeddingService
+from src.embeddings.bm25_service import BM25EmbeddingService
 from src.embeddings.model import SparseEmbedding
 
 
 class FakeFastEmbedModel:
+    """Mock FastEmbed model for testing."""
+
     def embed(self, texts: list[str]):
+        """Yield fake sparse embeddings for each input text."""
         for index, _ in enumerate(texts):
             yield FastEmbedSparseEmbedding(
                 indices=np.array([index, index + 1]),
@@ -17,14 +24,16 @@ class FakeFastEmbedModel:
             )
 
     def query_embed(self, query: str):
+        """Yield a fake sparse embedding for a query."""
         yield FastEmbedSparseEmbedding(
             indices=np.array([7, 9]),
             values=np.array([0.8, 0.2]),
         )
 
 
-def make_encoder() -> SparseEmbeddingService:
-    encoder = SparseEmbeddingService.__new__(SparseEmbeddingService)
+def make_encoder() -> BM25EmbeddingService:
+    """Create a test encoder with a mocked FastEmbed model."""
+    encoder = BM25EmbeddingService.__new__(BM25EmbeddingService)
     encoder.model = FakeFastEmbedModel()
     return encoder
 

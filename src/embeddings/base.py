@@ -1,11 +1,19 @@
-"""Abstract interface for embedding text into dense vectors."""
+"""Abstract interfaces for embedding text into dense and sparse vectors.
+
+Implementers should provide efficient batch document encoding and a
+single-query API used by the ingestion and retrieval pipelines.
+"""
 
 from abc import ABC, abstractmethod
 from src.embeddings.model import SparseEmbedding
 
 
 class SparseEmbeddingService(ABC):
-    """Protocol for encoding documents and queries as sparse vectors."""
+    """Protocol for encoding documents and queries as sparse vectors.
+
+    Concrete implementations should support batching for document
+    embeddings and a single-query API for retrieval-time encoding.
+    """
 
     @abstractmethod
     def embed_documents(self, texts: list[str]) -> list[SparseEmbedding]:
@@ -19,7 +27,11 @@ class SparseEmbeddingService(ABC):
 
 
 class DenseEmbeddingService(ABC):
-    """Protocol for models that encode text as floating-point vectors."""
+    """Protocol for models that encode text as floating-point vectors.
+
+    The `dimension` property allows callers to provision vector stores
+    with the correct vector size before inserting points.
+    """
 
     @property
     @abstractmethod

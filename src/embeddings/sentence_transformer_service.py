@@ -1,4 +1,9 @@
-"""Sentence-transformers implementation of :class:`~src.embeddings.base.EmbeddingService`."""
+"""Sentence-transformers implementation of dense embedding service.
+
+This adapter loads a Hugging Face `sentence-transformers` model and
+exposes the minimal `DenseEmbeddingService` API used by the rest of
+the application. The model is loaded once and reused for all calls.
+"""
 
 from sentence_transformers import SentenceTransformer
 

@@ -1,3 +1,9 @@
+"""Tests for PDF loader.
+
+Validates that the PDFLoader correctly extracts pages from PDF files
+and generates deterministic document IDs based on file content.
+"""
+
 from pathlib import Path
 
 from src.ingestion.loaders.pdf_loader import PDFLoader

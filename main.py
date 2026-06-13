@@ -9,7 +9,11 @@ from src.vectordb.qdrant_store import QdrantVectorStore
 
 
 def main() -> None:
-    """Run the default application entry point."""
+    """Run the default application entry point.
+
+    This is a placeholder demonstrating the basic imports and structure.
+    Extend with actual ingestion or retrieval logic as needed.
+    """
     print("Hello from rag-system!")
 
 

@@ -1,4 +1,8 @@
-"""Manual smoke script for creating the configured Qdrant collection."""
+"""Manual smoke test script for creating the configured Qdrant collection.
+
+Loads the embedding model to determine the vector dimension and creates
+a collection in Qdrant if it doesn't exist.
+"""
 
 from src.core.config import load_config
 
@@ -8,6 +12,7 @@ from src.vectordb.qdrant_store import QdrantVectorStore
 
 
 def main() -> None:
+    """Load config and create the vector collection."""
     config = load_config()
     embedder = SentenceTransformerEmbeddingService(config.embedding.vector_model_name)
     store = QdrantVectorStore(
