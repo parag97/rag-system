@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from src.core.search import SearchResult 
-from src.context.model import Context  
+from src.context.model import Context
+from src.vectordb.base import VectorStore  
 
 
 class ContextChunkAssembler(ABC):
@@ -23,4 +24,13 @@ class ContextExpander(ABC):
         chunks: list[SearchResult],
     ) -> list[SearchResult]:
         pass
-    
+
+
+        
+class ContextBuilder(ABC):
+    @abstractmethod
+    def build(
+        self, 
+        chunks: list[SearchResult], 
+        ) -> Context:
+        pass

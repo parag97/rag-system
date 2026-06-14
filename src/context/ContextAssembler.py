@@ -29,10 +29,10 @@ class SimpleContextChunkAssembler(ContextChunkAssembler):
         )
         # Use the first chunk's metadata as representative for the group
         context_str = f'''
-        #####################################################################
-        # Next chunk with metadata
-        #####################################################################
-        '''
+    #####################################################################
+    # Next chunk with metadata
+    #####################################################################
+    '''
         current_document_id = None
         current_page = None
         current_section_title = None

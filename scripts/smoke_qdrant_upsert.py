@@ -21,6 +21,7 @@ def main() -> None:
         host=config.qdrant.host,
         port=config.qdrant.port,
         collection_name=config.qdrant.collection_name,
+        top_k=config.qdrant.top_k,
     )
 
     chunk = Chunk(
