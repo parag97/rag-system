@@ -34,7 +34,36 @@ def test_neighbor_expander_smoke():
 
     expanded = expander.expand([center])
     texts = [c.text for c in expanded]
-    assert texts == ["left", "center", "right"]
-    # scores should be unchanged by the expander (option A)
+    assert texts == ["center", "left", "right"]
+
+    assert expanded[0].type == "retrieved"
+    assert expanded[0].seed_chunk == "doc1:1"
+    assert expanded[1].type == "expanded"
+    assert expanded[1].seed_chunk == "doc1:1"
+    assert expanded[2].type == "expanded"
+    assert expanded[2].seed_chunk == "doc1:1"
+
     scores = [c.score for c in expanded]
-    assert scores == [0.5, 0.9, 0.6]
+    assert scores == [0.9, 0.5, 0.6]
+
+
+def test_neighbor_expander_returns_retrieved_chunk_when_no_neighbors():
+    chunk = SearchResult(
+        chunk_id="doc1:1",
+        score=0.9,
+        text="center",
+        source_file="doc1",
+        chunk_index=1,
+    )
+
+    class MockStore:
+        def get_chunks_by_range(self, document_id, start, end):
+            return []
+
+    expander = NeighborContextExpander(MockStore(), window_size=1)
+    expanded = expander.expand([chunk])
+
+    assert len(expanded) == 1
+    assert expanded[0].chunk_id == "doc1:1"
+    assert expanded[0].type == "retrieved"
+    assert expanded[0].seed_chunk == "doc1:1"

@@ -28,16 +28,15 @@ def test_integration_expander_assembler():
     center = all_chunks[1]
     expander = NeighborContextExpander(store, window_size=1)
     expanded = expander.expand([center])
-    # neighbor scores should be preserved
+    assert [c.type for c in expanded] == ["retrieved", "expanded", "expanded"]
+    assert [c.seed_chunk for c in expanded] == ["doc1:1", "doc1:1", "doc1:1"]
+
     expanded_scores = {c.chunk_id: c.score for c in expanded}
-    assert expanded_scores.get("doc1:0") == 0.1
-    assert expanded_scores.get("doc1:1") == 0.9
-    assert expanded_scores.get("doc1:2") == 0.2
+    assert expanded_scores == {"doc1:0": 0.1, "doc1:1": 0.9, "doc1:2": 0.2}
 
     assembler = SimpleContextChunkAssembler(max_characters=1000)
     ctx = assembler.assembleChunks(expanded)
 
-    # The assembled context should include all three texts and a Document header
     assert "left-text" in ctx.text
     assert "center-text" in ctx.text
     assert "right-text" in ctx.text

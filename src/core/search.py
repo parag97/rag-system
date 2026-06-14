@@ -27,6 +27,8 @@ class SearchResult(BaseModel):
     score: float
     text: str
     source_file: str
+    type: str | None = None
+    seed_chunk: str | None = None
     chunk_index: int | None = None
     start_page: int | None = None
     end_page: int | None = None

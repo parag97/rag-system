@@ -25,18 +25,24 @@ class NeighborContextExpander(ContextExpander):
         for chunk in chunks:
             document_id = chunk.source_file
             chunk_index = chunk.chunk_index
+            chunk.type = "retrieved"
+            chunk.seed_chunk = chunk.chunk_id
+            expanded_chunks.append(chunk)
+            seen.add(chunk.chunk_id)
+
             # skip chunks missing positional metadata
             if document_id is None or chunk_index is None:
                 continue
             start_index = max(0, chunk_index - self.window_size)
             end_index = chunk_index + self.window_size
             neighboring_chunks = self.vector_store.get_chunks_by_range(document_id, start_index, end_index)
-            
+
             for nc in neighboring_chunks:
                 if nc.chunk_id in seen:
                     continue
                 seen.add(nc.chunk_id)
+                nc.type = "expanded"
+                nc.seed_chunk = chunk.chunk_id
                 expanded_chunks.append(nc)
-
         return expanded_chunks
     
