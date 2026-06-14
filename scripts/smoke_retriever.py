@@ -9,6 +9,7 @@ from src.embeddings.sentence_transformer_service import SentenceTransformerEmbed
 from src.embeddings.bm25_service import BM25EmbeddingService
 from src.retrieval.retriever import Retriever
 from src.vectordb.qdrant_store import QdrantVectorStore
+from src.reranking.CrossEncoderReRanker import CrossEncoderReRanker
 
 config = load_config()
 
@@ -18,10 +19,14 @@ embedder = SentenceTransformerEmbeddingService(
 sparse = BM25EmbeddingService(
     model_name=config.embedding.sparse_model_name
 )
-
+reranker = CrossEncoderReRanker(
+    model_name=config.reranker.cross_encoder_model_name,
+    top_k=config.reranker.top_k,
+)
 vector_store = QdrantVectorStore(
     host=config.qdrant.host,
     port=config.qdrant.port,
+    top_k=config.qdrant.top_k,
     collection_name=config.qdrant.collection_name,
 )
 
@@ -29,12 +34,12 @@ retriever = Retriever(
     dense_embedding_service=embedder,
     sparse_embedding_service=sparse,
     vector_store=vector_store,
+    re_ranker=reranker
 )
 query = "How much money does amazon have?"
 print(f"Query: {query}")
 results = retriever.retrieve(
-    query,
-    top_k=3,
+    query
 )
 
 for result in results:

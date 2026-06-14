@@ -23,11 +23,13 @@ class QdrantConfig(BaseModel):
         host: Qdrant server hostname.
         port: Qdrant HTTP/gRPC port.
         collection_name: Target collection for document vectors.
+        top_k: Number of nearest neighbors to return on search.
     """
 
     host: str = Field(min_length=1)
     port: int = Field(ge=1, le=65535)
     collection_name: str = Field(min_length=1)
+    top_k: int = Field(gt=0)
 
 class ChunkingConfig(BaseModel):
     """Settings for document chunking.
@@ -47,6 +49,37 @@ class ChunkingConfig(BaseModel):
             raise ValueError("chunk_overlap must be smaller than chunk_size.")
         return self
 
+class reRankerConfig(BaseModel):
+    """Settings for re-ranking search results.
+
+    Attributes:
+        cross_encoder_model_name: Model identifier for the cross-encoder used in re-ranking.
+        top_k: Number of top search results to return after re-ranking.
+    """
+
+    cross_encoder_model_name: str = Field(min_length=1)
+    top_k: int = Field(gt=0)
+
+class ContextAssemblerConfig(BaseModel):
+    """Settings for assembling retrieved chunks into a context string.
+
+    Attributes:
+        max_characters: Maximum total character length for the assembled context.
+    """
+
+    max_characters: int = Field(gt=0)
+
+class expanderConfig(BaseModel):
+    """Settings for query expansion.
+
+    Attributes:
+        expansion_model_name: Model identifier for the query expansion model.
+    """
+
+    expansion_window_size: int = Field(gt=0)
+
+
+
 class AppConfig(BaseModel):
     """Root configuration loaded from a YAML file.
 
@@ -57,11 +90,13 @@ class AppConfig(BaseModel):
         embedding: Embedding model settings (dense + sparse).
         qdrant: Vector store connection settings.
         chunking: Document chunking configuration.
+        reranker: Re-ranking configuration.
     """
 
     embedding: EmbeddingConfig
     qdrant: QdrantConfig
     chunking: ChunkingConfig
+    reranker: reRankerConfig
 
 
 
@@ -85,5 +120,8 @@ def load_config(path: str = "configs/dev.yml") -> AppConfig:
     """
     with open(path, "r") as f:
         data = yaml.safe_load(f)
-
     return AppConfig(**data)
+
+if __name__ == "__main__":
+    # Example usage: load config and print it.
+    config = load_config("configs/dev.yml")

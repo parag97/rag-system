@@ -21,16 +21,18 @@ class QdrantVectorStore(VectorStore):
     search.
     """
 
-    def __init__(self, host: str, port: int, collection_name: str) -> None:
+    def __init__(self, host: str, port: int, top_k: int, collection_name: str) -> None:
         """Connect to a Qdrant instance.
 
         Args:
             host: Qdrant server hostname.
             port: Qdrant server port.
+            top_k: Number of top results to return.
             collection_name: Collection used for all operations on this store.
         """
         self.collection_name = collection_name
         self.client = QdrantClient(host=host, port=port)
+        self.top_k = top_k
 
     def create_collection(self, dimension: int) -> None:
         """Create the configured collection with cosine vector similarity.
@@ -128,10 +130,7 @@ class QdrantVectorStore(VectorStore):
                     entry["score"] += score
 
         update_rank(dense_points)
-        print(f"Fused scores after dense update: {fused_scores}")
         update_rank(sparse_points)
-        print()
-        print(f"Fused scores after sparse update: {fused_scores}")
 
         fused = sorted(
             fused_scores.values(),
@@ -144,7 +143,6 @@ class QdrantVectorStore(VectorStore):
         self,
         dense_query_vector: list[float],
         sparse_query_vector: SparseEmbedding,
-        top_k: int,
     ) -> list[SearchResult]:
         """Return the top matching chunks for a query embedding.
 
@@ -157,8 +155,9 @@ class QdrantVectorStore(VectorStore):
         """
         if not dense_query_vector:
             raise ValueError("query_vector must not be empty.")
-        if top_k <= 0:
+        if self.top_k <= 0:
             raise ValueError("top_k must be greater than zero.")
+        
 
         # Query dense and sparse indexes separately and combine the raw
         # point lists. Downstream we validate payloads before mapping.
@@ -166,7 +165,7 @@ class QdrantVectorStore(VectorStore):
             collection_name=self.collection_name,
             query=dense_query_vector,
             using="dense",
-            limit=top_k,
+            limit=self.top_k,
         )
 
         resp_sparse = self.client.query_points(
@@ -176,7 +175,7 @@ class QdrantVectorStore(VectorStore):
                 values=sparse_query_vector.values,
             ),
             using="sparse",
-            limit=top_k,
+            limit=self.top_k,
         )
 
         dense_resp_points = resp_dense.points
@@ -185,7 +184,7 @@ class QdrantVectorStore(VectorStore):
         fused_resp_points = self._reciprocal_rank_fusion(
             dense_resp_points,
             sparse_resp_points,
-            top_k=top_k,
+            top_k=self.top_k,
         )
 
         result: list[SearchResult] = []
@@ -201,3 +200,45 @@ class QdrantVectorStore(VectorStore):
             result.append(SearchResult.from_chunk_match(chunk, each_point.score))
 
         return result
+    def get_chunks_by_range(
+        self,document_id: str,
+        start_chunk_index: int,
+        end_chunk_index: int
+        ) -> list[SearchResult]:
+            """Return chunks for a document within a specified chunk index range.
+
+            Args:
+                document_id: Identifier of the source document.
+                start_chunk_index: Starting index of the chunk range (inclusive).
+                end_chunk_index: Ending index of the chunk range (exclusive).
+            Returns:
+                List of SearchResult objects for chunks in the specified range.                 
+            """         
+            
+            # Query Qdrant for points with the specified document_id and chunk index range.
+            filter_condition = {
+                "must": [
+                    {"key": "source_file", "match": {"value": document_id}},
+                    {"key": "chunk_index", "range": {"gte": start_chunk_index, "lt": end_chunk_index}},
+                ]
+            }
+
+            resp = self.client.scroll(
+                collection_name=self.collection_name,
+                filter=filter_condition,
+                limit=self.top_k,
+            )
+
+            result: list[SearchResult] = []
+
+            for each_point in resp.points:
+                # Validate payload structure before mapping to domain model.
+                try:
+                    chunk = Chunk.model_validate(each_point.payload)
+                except ValidationError as exc:
+                    raise ValueError(
+                        f"Qdrant point '{each_point.id}' has an invalid chunk payload."
+                    ) from exc
+                result.append(SearchResult.from_chunk_match(chunk, each_point.score))
+
+            return result

@@ -43,12 +43,7 @@ class VectorStore(ABC):
         pass
 
     @abstractmethod
-    def search(
-        self,
-        dense_query_vector: list[float],
-        sparse_query_vector: SparseEmbedding,
-        top_k: int,
-    ) -> list[SearchResult]:
+    def search(self, dense_query_vector: list[float], sparse_query_vector: SparseEmbedding) -> list[SearchResult]:
         """Return the ``top_k`` chunks most similar to the query vectors.
 
         Args:
@@ -60,4 +55,13 @@ class VectorStore(ABC):
             Ranked search hits with scores and chunk metadata.
         """
         # Backends should map storage-specific results into `SearchResult`.
+        pass
+
+    @abstractmethod
+    def get_chunks_by_range(
+        self,document_id: str,
+        start_chunk_index: int,
+        end_chunk_index: int
+        ) -> list[SearchResult]:
+        
         pass

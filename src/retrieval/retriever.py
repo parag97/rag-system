@@ -9,9 +9,9 @@ from src.core.search import SearchResult
 
 from src.embeddings.base import DenseEmbeddingService, SparseEmbeddingService
 
-
 from src.vectordb.base import VectorStore
 
+from src.reranking.base import ReRanker
 
 class Retriever:
     """End-to-end semantic search over an indexed document corpus.
@@ -26,6 +26,7 @@ class Retriever:
         dense_embedding_service: DenseEmbeddingService,
         sparse_embedding_service: SparseEmbeddingService,
         vector_store: VectorStore,
+        re_ranker: ReRanker,
     ) -> None:
         """Wire together embedding and storage dependencies.
 
@@ -37,8 +38,9 @@ class Retriever:
         self.dense_embedding_service = dense_embedding_service
         self.sparse_embedding_service = sparse_embedding_service
         self.vector_store = vector_store
+        self.re_ranker = re_ranker
 
-    def retrieve(self, query: str, top_k: int = 5) -> list[SearchResult]:
+    def retrieve(self, query: str) -> list[SearchResult]:
         """Find chunks most relevant to a natural-language query.
 
         Validates inputs, builds dense and sparse query embeddings, then
@@ -46,8 +48,6 @@ class Retriever:
         """
         if not query.strip():
             raise ValueError("query must not be empty.")
-        if top_k <= 0:
-            raise ValueError("top_k must be greater than zero.")
 
         # Build both sparse and dense query representations.
         sparse_query = self.sparse_embedding_service.embed_query(query)
@@ -57,7 +57,8 @@ class Retriever:
         search_result = self.vector_store.search(
             dense_query_vector=dense_query,
             sparse_query_vector=sparse_query,
-            top_k=top_k,
         )
+
+        search_result = self.re_ranker.re_rank(search_result, query)
 
         return search_result

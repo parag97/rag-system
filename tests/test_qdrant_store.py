@@ -49,6 +49,8 @@ def make_store(client: FakeClient) -> QdrantVectorStore:
     store = QdrantVectorStore.__new__(QdrantVectorStore)
     store.collection_name = "documents"
     store.client = client
+    # tests expect a default top_k to exist on the store
+    store.top_k = 10
     return store
 
 
@@ -67,9 +69,7 @@ def test_search_validates_payload_before_mapping_result():
     ]
 
     with pytest.raises(ValueError, match="bad-point"):
-        make_store(client).search(
-            [1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]), top_k=1
-        )
+        make_store(client).search([1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]))
 
 
 def test_search_maps_valid_chunk_payload():
@@ -84,9 +84,7 @@ def test_search_maps_valid_chunk_payload():
         SimpleNamespace(id=chunk.vector_id, score=0.8, payload=chunk.model_dump())
     ]
 
-    result = make_store(client).search(
-        [1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]), top_k=1
-    )
+    result = make_store(client).search([1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]))
 
     assert result[0].chunk_id == chunk.chunk_id
 
@@ -132,8 +130,6 @@ def test_search_fuses_dense_and_sparse_results_with_rrf():
         SimpleNamespace(id=chunk_c.vector_id, score=0.6, payload=chunk_c.model_dump()),
     ]
 
-    result = make_store(client).search(
-        [1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]), top_k=3
-    )
+    result = make_store(client).search([1.0, 0.0], SparseEmbedding(indices=[0], values=[0.0]))
 
     assert [hit.chunk_id for hit in result] == [chunk_b.chunk_id, chunk_a.chunk_id, chunk_c.chunk_id]

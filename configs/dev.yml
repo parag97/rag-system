@@ -6,7 +6,18 @@ qdrant:
   host: localhost
   port: 6333
   collection_name: documents
+  top_k: 5
 
 chunking:
   chunk_size: 500
   chunk_overlap: 100
+
+reranker:
+  cross_encoder_model_name: cross-encoder/ms-marco-MiniLM-L-6-v2
+  top_k: 2
+
+context_assembler:
+  max_characters: 1500
+
+expander:
+  expansion_window_size: 2

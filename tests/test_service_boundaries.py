@@ -91,10 +91,21 @@ class FakeVectorStore(VectorStore):
         self,
         dense_query_vector: list[float],
         sparse_query_vector: SparseEmbedding,
-        top_k: int,
+        top_k: int | None = None,
     ) -> list[SearchResult]:
         """Return empty results."""
         return []
+    
+    def get_chunks_by_range(self, document_id: str, start_chunk_index: int, end_chunk_index: int) -> list[SearchResult]:
+        """Return an empty list for range queries in the fake store."""
+        return []
+
+
+class FakeReRanker:
+    """Simple re-ranker implementation for tests that returns inputs unchanged."""
+
+    def re_rank(self, search_results: list[SearchResult], query: str) -> list[SearchResult]:
+        return search_results
 
 
 def test_chunk_vector_id_is_deterministic():
@@ -136,7 +147,7 @@ def test_ingestion_uses_document_embedding_boundary():
 def test_retriever_uses_query_embedding_boundary():
     embedder = FakeEmbedder()
     sparse_embedder = FakeSparseEmbedder()
-    Retriever(embedder, sparse_embedder, FakeVectorStore()).retrieve("question")
+    Retriever(embedder, sparse_embedder, FakeVectorStore(), FakeReRanker()).retrieve("question")
 
     assert embedder.query_calls == 1
     assert embedder.document_calls == 0
