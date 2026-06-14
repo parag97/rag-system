@@ -10,7 +10,7 @@ generator = LCELGenerator(llm)
 
 context = Context(
     text="""
-Python is a SNAKE created by Parag.
+Python is a programming language created by Guido van Rossum.
 """,
     sources=[],
 )
