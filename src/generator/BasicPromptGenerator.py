@@ -1,56 +1,65 @@
+"""Basic prompt generator for RAG queries."""
+
 from src.generator.base import promptGenerator
 from src.context.model import Context
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.prompts import ChatPromptTemplate
+
 
 class BasicPromptGenerator(promptGenerator):
-    """A basic implementation of the prompt generator that formats the prompt
-    by combining the context and the query in a straightforward manner.
+    """Simple prompt generator combining context and query into a chat template.
+
+    This generator creates a basic RAG prompt with a system message instructing
+    the LLM to answer using only provided context, and a user message containing
+    the context and question.
     """
-    def __init__(self):
+
+    def __init__(self) -> None:
+        """Initialize the basic prompt generator."""
         pass
 
-    def generate_prompt(self, context: Context, query: str) -> ChatPromptTemplate:
-        """Generate a prompt for the LLM based on the provided context and query.
+    def generate_prompt(
+        self,
+        context: Context,
+        query: str,
+    ) -> ChatPromptTemplate:
+        """Generate a chat prompt template for the LLM.
+
+        The prompt instructs the LLM to:
+        - Answer using ONLY the provided context
+        - Explicitly state when information is not found
+        - Not fabricate facts
 
         Args:
-            context (Context): The assembled context relevant to the query.
-            query (str): The user's original query.
+            context: Assembled context with retrieved chunks.
+            query: User's original natural-language question.
 
         Returns:
-            ChatPromptTemplate: A chat prompt template representing the prompt to be sent to the LLM.
+            ChatPromptTemplate ready for LLM invocation.
         """
+        # Define the system instructions for the LLM
+        system_instruction = (
+            "You are a helpful AI assistant.\n\n"
+            "Answer the user's question using ONLY the provided context.\n\n"
+            "If the answer cannot be found in the context, explicitly say:\n"
+            '"I could not find the answer in the provided context."\n\n'
+            "Do not make up facts."
+        )
 
-
-
-        RAG_PROMPT = ChatPromptTemplate.from_messages(
-                [
+        # Create the chat prompt template with system and user messages
+        rag_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    system_instruction,
+                ),
+                (
+                    "human",
                     (
-                        "system",
-                        """
-                            You are a helpful AI assistant.
-
-                            Answer the user's question using ONLY the provided context.
-
-                            If the answer cannot be found in the context, explicitly say:
-                            "I could not find the answer in the provided context."
-
-                            Do not make up facts.
-                            """.strip(),
+                        "Context:\n{context}\n\n"
+                        "Question:\n{query}"
                     ),
-                    (
-                        "human",
-                        """
-                            Context:
-                            {context}
+                ),
+            ]
+        )
 
-                            Question:
-                            {query}
-                            """.strip(),
-                                    ),
-                                ]
-                            )
-                    
-
-
-        return RAG_PROMPT
+        return rag_prompt

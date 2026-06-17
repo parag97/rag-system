@@ -15,3 +15,6 @@ qdrant_storage/
 
 logs/
 *.log
+
+*.json
+*.pdf

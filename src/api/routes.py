@@ -30,3 +30,8 @@ async def query(
     return QueryResponse(
         answer=answer,
     )
+
+
+@router.get("/health")
+async def health():
+    return {"status": "ok"}

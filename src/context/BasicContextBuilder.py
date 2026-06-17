@@ -28,6 +28,6 @@ class DefaultContextBuilder(ContextBuilder):
         else:
             expanded_chunks = chunks
 
-        context = self.assembler.assembleChunks(expanded_chunks)
+        context = self.assembler.assemble_chunks(expanded_chunks)
 
         return context
