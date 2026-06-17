@@ -55,7 +55,7 @@ def test_smoke_expander_and_assembler():
     assert expanded[2].type == "expanded"
 
     assembler = SimpleContextChunkAssembler(max_characters=1000)
-    context = assembler.assembleChunks(expanded)
+    context = assembler.assemble_chunks(expanded)
 
     assert "Document: doc1" in context.text
     assert "Page: 1" in context.text

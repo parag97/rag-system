@@ -48,7 +48,7 @@ def test_assembler_smoke_ordering_and_duplicates():
     ]
 
     assembler = SimpleContextChunkAssembler(max_characters=1000)
-    ctx = assembler.assembleChunks(chunks)
+    ctx = assembler.assemble_chunks(chunks)
 
     assert "Document: doc1" in ctx.text
     assert "Page: 1" in ctx.text
@@ -72,7 +72,7 @@ def test_assembler_smoke_single_chunk():
     )
 
     assembler = SimpleContextChunkAssembler(max_characters=1000)
-    ctx = assembler.assembleChunks([chunk])
+    ctx = assembler.assemble_chunks([chunk])
 
     assert "Document: doc1" in ctx.text
     assert "Text: single" in ctx.text
@@ -104,7 +104,7 @@ def test_assembler_respects_max_length_and_context_headers():
     ]
 
     assembler = SimpleContextChunkAssembler(max_characters=300)
-    ctx = assembler.assembleChunks(chunks)
+    ctx = assembler.assemble_chunks(chunks)
 
     assert "Document: doc1" in ctx.text
     assert "Page: 1" in ctx.text or "Page: 2" in ctx.text

@@ -1,4 +1,6 @@
 from pathlib import Path
+import logging
+import time
 
 from src.ingestion.document_registry import (
     DocumentRegistry,
@@ -11,6 +13,8 @@ from src.ingestion.document_ingestion_service import (
     DocumentIngestionService,
 )
 from src.vectordb.base import VectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentSyncService:
@@ -33,36 +37,69 @@ class DocumentSyncService:
         self._vector_store = vector_store
         self._registry = registry
 
+    def _wait_until_ready(
+        self,
+        file_path: Path,
+        max_retries: int = 30,
+        retry_delay_seconds: int = 1,
+    ) -> None:
+        """
+        Wait until a file becomes readable.
+
+        Windows may emit filesystem events before
+        file writes have completed.
+        """
+        for attempt in range(1, max_retries + 1):
+            try:
+                with open(file_path, "rb"):
+                    logger.info(
+                        "File ready: %s",
+                        file_path,
+                    )
+                    return
+            except PermissionError:
+                logger.warning(
+                    "File locked. Retry %d/%d for %s",
+                    attempt,
+                    max_retries,
+                    file_path,
+                )
+                if attempt == max_retries:
+                    raise RuntimeError(
+                        f"Timed out waiting for file: {file_path}"
+                    )
+                time.sleep(
+                    retry_delay_seconds
+                )
+            except FileNotFoundError:
+                raise
+
     def sync_document(
         self,
         file_path: str | Path,
     ) -> None:
-
         file_path = Path(file_path)
+        
+        # Wait until file is fully written and accessible
+        self._wait_until_ready(file_path)
 
         source_path = str(
             file_path.resolve()
         )
-
         file_hash = compute_file_hash(
             file_path
         )
-
         existing = self._registry.get(
             source_path
         )
 
-        #
-        # NEW FILE
-        #
+        # Handle new file
         if existing is None:
-
             result = (
                 self._ingestion_service.ingest(
                     file_path
                 )
             )
-
             self._registry.set(
                 source_path,
                 RegistryEntry(
@@ -70,37 +107,29 @@ class DocumentSyncService:
                     file_hash=file_hash,
                 ),
             )
-
-            print(
-                f"Indexed new document: {source_path}"
+            logger.info(
+                "Indexed new document: %s",
+                source_path,
             )
-
             return
 
-        #
-        # UNCHANGED FILE
-        #
+        # Handle unchanged file
         if existing.file_hash == file_hash:
-
-            print(
-                f"Skipping unchanged file: {source_path}"
+            logger.info(
+                "Skipping unchanged file: %s",
+                source_path,
             )
-
             return
 
-        #
-        # MODIFIED FILE
-        #
+        # Handle modified file
         self._vector_store.delete_document(
             existing.document_id
         )
-
         result = (
             self._ingestion_service.ingest(
                 file_path
             )
         )
-
         self._registry.set(
             source_path,
             RegistryEntry(
@@ -108,22 +137,19 @@ class DocumentSyncService:
                 file_hash=file_hash,
             ),
         )
-
-        print(
-            f"Reindexed modified file: {source_path}"
+        logger.info(
+            "Reindexed modified file: %s",
+            source_path,
         )
 
     def delete_document(
         self,
         file_path: str | Path,
     ) -> None:
-
         file_path = Path(file_path)
-
         source_path = str(
             file_path.resolve()
         )
-
         existing = self._registry.get(
             source_path
         )
@@ -134,11 +160,10 @@ class DocumentSyncService:
         self._vector_store.delete_document(
             existing.document_id
         )
-
         self._registry.remove(
             source_path
         )
-
-        print(
-            f"Removed document: {source_path}"
+        logger.info(
+            "Removed document: %s",
+            source_path,
         )

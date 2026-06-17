@@ -100,6 +100,10 @@ class FakeVectorStore(VectorStore):
         """Return an empty list for range queries in the fake store."""
         return []
 
+    def delete_document(self, source_file: str) -> None:
+        """Mock deleting document chunks."""
+        pass
+
 
 class FakeReRanker:
     """Simple re-ranker implementation for tests that returns inputs unchanged."""

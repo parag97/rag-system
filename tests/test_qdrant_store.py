@@ -58,7 +58,7 @@ def test_create_collection_validates_existing_schema():
     client = FakeClient()
     client.vector_params = VectorParams(size=3, distance=Distance.COSINE)
 
-    with pytest.raises(ValueError, match="expected size=2"):
+    with pytest.raises(ValueError, match="expected 2"):
         make_store(client).create_collection(dimension=2)
 
 

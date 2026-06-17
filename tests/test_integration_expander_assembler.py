@@ -35,7 +35,7 @@ def test_integration_expander_assembler():
     assert expanded_scores == {"doc1:0": 0.1, "doc1:1": 0.9, "doc1:2": 0.2}
 
     assembler = SimpleContextChunkAssembler(max_characters=1000)
-    ctx = assembler.assembleChunks(expanded)
+    ctx = assembler.assemble_chunks(expanded)
 
     assert "left-text" in ctx.text
     assert "center-text" in ctx.text
