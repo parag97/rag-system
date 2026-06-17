@@ -44,6 +44,13 @@ class ExpanderConfig(BaseModel):
     expansion_window_size: int = Field(gt=0)
 
 
+class IngestionConfig(BaseModel):
+    watch_folder: str = Field(min_length=1)
+    registry_path: str = Field(min_length=1)
+    file_ready_max_retries: int = Field(gt=0)
+    file_ready_retry_delay_seconds: int = Field(gt=0)
+
+
 class AppConfig(BaseModel):
     embedding: EmbeddingConfig
     qdrant: QdrantConfig
@@ -51,6 +58,7 @@ class AppConfig(BaseModel):
     reranker: ReRankerConfig
     context_assembler: ContextAssemblerConfig
     expander: ExpanderConfig
+    ingestion: IngestionConfig
 
 
 _config: AppConfig | None = None

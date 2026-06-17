@@ -32,16 +32,18 @@ class DocumentSyncService:
         ingestion_service: DocumentIngestionService,
         vector_store: VectorStore,
         registry: DocumentRegistry,
+        file_ready_max_retries: int = 30,
+        file_ready_retry_delay_seconds: int = 1,
     ) -> None:
         self._ingestion_service = ingestion_service
         self._vector_store = vector_store
         self._registry = registry
+        self._file_ready_max_retries = file_ready_max_retries
+        self._file_ready_retry_delay_seconds = file_ready_retry_delay_seconds
 
     def _wait_until_ready(
         self,
         file_path: Path,
-        max_retries: int = 30,
-        retry_delay_seconds: int = 1,
     ) -> None:
         """
         Wait until a file becomes readable.
@@ -49,7 +51,7 @@ class DocumentSyncService:
         Windows may emit filesystem events before
         file writes have completed.
         """
-        for attempt in range(1, max_retries + 1):
+        for attempt in range(1, self._file_ready_max_retries + 1):
             try:
                 with open(file_path, "rb"):
                     logger.info(
@@ -61,15 +63,15 @@ class DocumentSyncService:
                 logger.warning(
                     "File locked. Retry %d/%d for %s",
                     attempt,
-                    max_retries,
+                    self._file_ready_max_retries,
                     file_path,
                 )
-                if attempt == max_retries:
+                if attempt == self._file_ready_max_retries:
                     raise RuntimeError(
                         f"Timed out waiting for file: {file_path}"
                     )
                 time.sleep(
-                    retry_delay_seconds
+                    self._file_ready_retry_delay_seconds
                 )
             except FileNotFoundError:
                 raise

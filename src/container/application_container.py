@@ -182,7 +182,7 @@ class ApplicationContainer:
     @cached_property
     def document_registry(self):
         return DocumentRegistry(
-            "data/document_registry.json"
+            self.config.ingestion.registry_path
         )
 
     @cached_property
@@ -191,12 +191,14 @@ class ApplicationContainer:
             ingestion_service=self.document_ingestion_service,
             vector_store=self.vector_store,
             registry=self.document_registry,
+            file_ready_max_retries=self.config.ingestion.file_ready_max_retries,
+            file_ready_retry_delay_seconds=self.config.ingestion.file_ready_retry_delay_seconds,
         )
 
     @cached_property
     def watcher_service(self):
         return WatcherService(
-            watch_folder="data/raw",
+            watch_folder=self.config.ingestion.watch_folder,
             sync_service=self.document_sync_service,
         )
 
