@@ -15,7 +15,6 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-WATCH_FOLDER = "data/raw"
 
 
 def main():

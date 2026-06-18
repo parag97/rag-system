@@ -169,3 +169,44 @@ class DocumentSyncService:
             "Removed document: %s",
             source_path,
         )
+
+    def delete_by_document_id(
+        self,
+        document_id: str,
+    ) -> bool:
+        """Delete a document from the vector store and registry by document_id.
+
+        Looks up the source_file for the given document_id in the registry,
+        uses it to delete all matching vectors from the store (which filters
+        on the source_file payload field), then removes the registry entry.
+
+        Returns:
+            True if the document was found and deleted, False if not found.
+        """
+        entries = self._registry.list_entries()
+
+        match = next(
+            (
+                (source_path, entry)
+                for source_path, entry in entries.items()
+                if entry.document_id == document_id
+            ),
+            None,
+        )
+
+        if match is None:
+            return False
+
+        source_path, entry = match
+
+        # delete_document filters Qdrant on the source_file field
+        self._vector_store.delete_document(source_path)
+        self._registry.remove(source_path)
+
+        logger.info(
+            "Removed document '%s' (source: %s)",
+            document_id,
+            source_path,
+        )
+
+        return True

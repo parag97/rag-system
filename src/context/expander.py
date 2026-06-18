@@ -66,7 +66,7 @@ class NeighborContextExpander(ContextExpander):
 
             # Calculate neighbor range using window_size
             start_index = max(0, chunk_index - self.window_size)
-            end_index = chunk_index + self.window_size
+            end_index = chunk_index + self.window_size + 1
 
             # Retrieve neighbors from vector store
             neighboring_chunks = self.vector_store.get_chunks_by_range(

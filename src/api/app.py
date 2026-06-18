@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from src.api.routes import router
+from src.api.ingestion_routes import router as ingestion_router
 from src.api.dependencies import get_container
 
 
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
         container.watcher_service.stop()
 
     app.include_router(router)
+    app.include_router(ingestion_router)
 
     return app
 
