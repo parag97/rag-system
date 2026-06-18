@@ -6,13 +6,13 @@ from src.api.schemas import QueryResponse
 
 from src.api.dependencies import get_container
 
+
+
 from src.container.application_container import (
     ApplicationContainer,
 )
 
-router = APIRouter()
-
-
+router = APIRouter(prefix="/resp", tags=["resp"])
 @router.post(
     "/query",
     response_model=QueryResponse,
